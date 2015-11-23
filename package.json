@@ -1,0 +1,22 @@
+{
+  "name": "gaefoundation",
+  "version": "0.0.1",
+  "description": "Initial project using GAE and Foundation",
+  "author": "George Tuan",
+  "license": "MIT",
+  "devDependencies": {
+    "del": "^2.1.0",
+    "gulp": "^3.9.0",
+    "gulp-if": "^2.0.0",
+    "gulp-imagemin": "^2.4.0",
+    "gulp-jscs": "^3.0.2",
+    "gulp-jshint": "^1.12.0",
+    "gulp-load-plugins": "^1.1.0",
+    "gulp-print": "^2.0.1",
+    "gulp-shell": "^0.5.1",
+    "gulp-task-listing": "^1.0.1",
+    "gulp-util": "^3.0.7",
+    "jshint-stylish": "^2.1.0",
+    "yargs": "^3.30.0"
+  }
+}

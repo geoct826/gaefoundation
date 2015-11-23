@@ -1,0 +1,11 @@
+# Dependency directory
+node_modules/
+bower_components/
+
+# other
+.tmp
+.idea
+.DS_Store
+/build
+/report
+/node_modules

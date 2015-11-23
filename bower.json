@@ -1,0 +1,20 @@
+{
+  "name": "gaefoundation",
+  "version": "0.0.1",    
+  "description": "Initial project using GAE and Foundation",
+  "author": "George Tuan",
+  "license": "MIT",
+  "keywords": [
+    "GAE",
+    "Foundation",
+    "Angular",
+    "Gulp"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
