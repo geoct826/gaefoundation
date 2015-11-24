@@ -6,9 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Foundation</title>
 
-    <link rel="stylesheet" href="styles/lib.css">
+    <!-- build:css styles/lib.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css" />
+    <link rel="stylesheet" href="/bower_components/motion-ui/dist/motion-ui.css" />
+    <!-- endbower -->
+    <!-- endbuild -->      
 
-    <link rel="stylesheet" href="styles/styles.css">
+    <!-- build:css styles/styles.css -->
+    <!-- inject:css -->
+
+    <link rel="stylesheet" href="/.tmp/home.css">
+
+    <!-- endinject -->
+    <!-- endbuild -->
   </head>
     
 
@@ -170,9 +181,30 @@
 </div>      
     <!-- end body content -->
 
-    <script src="js/lib.js"></script>
+    <!-- build:js js/lib.js -->
+    <!-- bower:js -->
+    <script src="/bower_components/jquery/dist/jquery.js"></script>
+    <script src="/bower_components/what-input/what-input.js"></script>
+    <script src="/bower_components/foundation-sites/dist/foundation.js"></script>
+    <script src="/bower_components/motion-ui/dist/motion-ui.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
 
-    <script src="js/app.js"></script>
+    <!-- build:js js/app.js -->
+    <!-- inject:js -->
+
+
+
+    <script src="/src/home/app/app.js"></script>
+
+
+
+    <!-- endinject -->
+
+    <!-- inject:templates:js -->
+
+    <!-- endinject -->
+    <!-- endbuild -->      
   </body>
 
 </html

@@ -1,6 +1,6 @@
 {
   "name": "gaefoundation",
-  "version": "0.0.1",    
+  "version": "0.0.1",
   "description": "Initial project using GAE and Foundation",
   "author": "George Tuan",
   "license": "MIT",
@@ -16,5 +16,13 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "devDependencies": {
+  },
+  "dependencies": {   
+    "foundation-sites": "~6.0.3",
+    "font-awesome": "~4.5.0",
+    "material-design-iconic-font": "~2.2.0",
+    "motion-ui": "~1.1.1"      
+  }
 }
