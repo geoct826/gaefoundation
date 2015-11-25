@@ -20,7 +20,7 @@ gulp.task('vet', function () {
         .on('end', function() { log('JSHint Check Completed');});
 });
 
-gulp.task('gae-serve', function() {
+gulp.task('gae-serve', ['optimize'], function() {
     return gulp
         .src('./app', {read: false})
         .pipe($.shell([
@@ -31,6 +31,45 @@ gulp.task('gae-serve', function() {
 });
 
 // Build Tasks
+gulp.task('build-routes', function () {
+    log('Creating routes from templates');
+    var router = require('front-router');
+
+    return gulp
+        .src(config.homeTemplate + '**/*.html')
+        .pipe(router({
+            path: config.temp + 'routes.js',
+            root: config.homeTemplate
+        }))
+        .pipe(gulp.dest(config.temp + 'templates'));
+});
+
+gulp.task('templatecache', function() {
+    log('Creating $templateCache for foundation components');
+
+    return gulp
+        .src(config.htmltemplates)
+        .pipe($.minifyHtml({empty: true}))
+        .pipe($.angularTemplatecache(
+            config.templateCache.file,
+            config.templateCache.options        
+            ))
+        .pipe(gulp.dest(config.temp));
+});
+
+gulp.task('apptemplatecache', ['build-routes'], function() {
+    log('Creating $templateCache for application templates');
+
+    return gulp
+        .src(config.temp + 'templates/**/*.html')
+        .pipe($.minifyHtml({empty: true}))
+        .pipe($.angularTemplatecache(
+            config.appTemplateCache.file,
+            config.appTemplateCache.options        
+            ))
+        .pipe(gulp.dest(config.temp));
+});
+
 gulp.task('wiredep', function() {
     log('Wire up the bower css/js and app js into index.html');
     var options = config.getWiredepDefaultOptions();
@@ -43,7 +82,7 @@ gulp.task('wiredep', function() {
         .pipe(gulp.dest(config.homeApp));
 });
 
-gulp.task('inject', ['wiredep', 'styles'], function() {
+gulp.task('inject', ['wiredep', 'styles', 'templatecache', 'apptemplatecache'], function() {
     log('Wire up the app css into index.html');
 
     return gulp
@@ -52,22 +91,27 @@ gulp.task('inject', ['wiredep', 'styles'], function() {
         .pipe(gulp.dest(config.homeApp));
 });
 
-gulp.task('optimize', ['inject'], function() {
+gulp.task('optimize', ['inject', 'watch'], function() {
     log('Optimizing javascript, css, and html files');
-    
+
     var assets = $.useref.assets({searchPath: './'});
     var cssFilter = $.filter('**/*.css', {restore:true});
     var jsAppFilter = $.filter('**/' + config.homeOptimized.app, {restore:true});
     var jsLibFilter = $.filter('**/' + config.homeOptimized.lib, {restore:true});
-//    var templateCache = config.temp + config.templateCache.file;
-    
+    //var templateCache = config.temp + config.templateCache.file;
+
     return gulp
         .src(config.homeIndex)
         .pipe($.plumber())
-        //.pipe($.inject(gulp.src(templateCache, {read: false}), {
-        //    starttag: '<!-- inject:templates:js -->'
-        //}))
-        .pipe(assets)    
+        .pipe($.inject(gulp.src([
+            config.temp + 'templates.js',
+            config.temp + 'appTemplates.js'], {read: false}), {
+            starttag: '<!-- inject:templates:js -->'
+        }))
+        .pipe($.inject(gulp.src(config.temp + 'routes.js', {read: false}), {
+            starttag: '<!-- inject:routes:js -->'
+        }))    
+        .pipe(assets)
         // Filter and Minify CSS
         .pipe(cssFilter)
         .pipe($.minifyCss())
@@ -85,6 +129,19 @@ gulp.task('optimize', ['inject'], function() {
         .pipe(assets.restore())
         .pipe($.useref())
         .pipe(gulp.dest(config.homeBuild));
+});
+
+
+gulp.slurped = false;
+
+gulp.task('watch', function() {
+    if(!gulp.slurped){
+        log('starting watcher');
+        gulp.watch([
+            config.homeJs,           
+            config.homeTemplate + '**/*.html'], ["optimize"]);
+        gulp.slurped = true;
+    }    
 });
 
 // Helper Tasks
@@ -128,6 +185,18 @@ gulp.task('clean-fonts', function(done) {
 
 gulp.task('clean-styles', function(done) {
     clean(config.temp + '**/*.css', done);
+    done();
+});
+
+gulp.task('clean-code', function(done) {
+    var files = [].concat(
+        config.temp + '**/*.js',
+        config.temp + 'templates/**.html',
+        config.build + 'home/**/*.html',
+        config.build + 'home/js/**/*.js',
+        config.build + 'home/styles/**/*.css'
+    );
+    clean(files, done);
     done();
 });
 

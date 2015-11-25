@@ -7,7 +7,6 @@ module.exports = function() {
     var temp = './.tmp/';
 
     var config = {
-
         // File Path
         alljs: [
             client + '**/*.js'
@@ -21,11 +20,15 @@ module.exports = function() {
         homeBuild: goApp + 'static/home/',
         homeCss: temp + 'home.css',
         homeIndex: homeApp + 'index.html',
+        homeTemplate: homeApp + 'templates/',
         homeJs: homeApp + 'app/**/*.js',
+        htmltemplates: [
+            './bower_components/foundation-apps/js/angular/components/**/*.html'
+        ],
         images: client + 'img/**/*.*',
         appScss: client + 'scss/**/*.scss',
         scss: [
-            './bower_components/foundation-sites/scss',
+            './bower_components/foundation-apps/scss',
             './bower_components/normalize-scss/sass',
             './bower_components/motion-ui/src'
         ],
@@ -46,7 +49,21 @@ module.exports = function() {
             app: 'homeApp.js',
             lib: 'homeLib.js'
         },
-                
+        templateCache: {
+            file: 'templates.js',
+            options: {
+                module: 'foundation',
+                standAlone: false,
+                root: 'components/'
+            }
+        },
+        appTemplateCache: {
+            file: 'appTemplates.js',
+            options: {
+                module: 'foundation',
+                standAlone: false
+            }
+        }
     };
 
     config.getWiredepDefaultOptions = function() {
@@ -57,6 +74,6 @@ module.exports = function() {
         };
         return options;
     };
-    
+
     return config;
 };

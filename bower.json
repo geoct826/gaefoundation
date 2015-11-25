@@ -17,12 +17,11 @@
     "test",
     "tests"
   ],
-  "devDependencies": {
-  },
-  "dependencies": {   
-    "foundation-sites": "~6.0.3",
+  "devDependencies": {},
+  "dependencies": {
     "font-awesome": "~4.5.0",
     "material-design-iconic-font": "~2.2.0",
-    "motion-ui": "~1.1.1"      
+    "motion-ui": "~1.1.1",
+    "foundation-apps": "~1.1.0"
   }
 }
