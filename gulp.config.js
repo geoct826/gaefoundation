@@ -16,12 +16,28 @@ module.exports = function() {
             './bower_components/font-awesome/fonts/**/*.*',
             './bower_components/material-design-iconic-font/dist/fonts/**/*.*'
         ],
+        // Home App
         homeApp: homeApp,
         homeBuild: goApp + 'static/home/',
         homeCss: temp + 'home.css',
         homeIndex: homeApp + 'index.html',
-        homeTemplate: homeApp + 'templates/',
+        homeRouteFile: 'homeRoutes.js',
+        homeTemplateFile: 'homeTemplates.js',
+        homeTemplatePath: 'homeTemplates/',
         homeJs: homeApp + 'app/**/*.js',
+        homeHtml: homeApp + 'templates/**/*.html',
+        // Admin App
+        adminApp: adminApp,
+        adminBuild: goApp + 'static/admin',
+        adminCss: temp + 'admin.css',
+        adminIndex: adminApp + 'index.html',
+        adminRouteFile: 'adminRoutes.js',
+        adminTemplateFile: 'adminTemplates.js',        
+        adminTemplatePath: 'adminTemplates/',
+        adminJs: adminApp + 'app/**/*.js',
+        adminHtml: adminApp + 'templates/**/*.html',
+        
+        htmltemplatesfile: 'templates.js',
         htmltemplates: [
             './bower_components/foundation-apps/js/angular/components/**/*.html'
         ],
@@ -46,9 +62,13 @@ module.exports = function() {
         },
         // Optimized Files
         homeOptimized: {
-            app: 'homeApp.js',
-            lib: 'homeLib.js'
+            app: 'app.js',
+            lib: 'lib.js'
         },
+        adminOptimized: {
+            app: 'app.js',
+            lib: 'lib.js'
+        },        
         templateCache: {
             file: 'templates.js',
             options: {
@@ -58,12 +78,11 @@ module.exports = function() {
             }
         },
         appTemplateCache: {
-            file: 'appTemplates.js',
             options: {
                 module: 'foundation',
                 standAlone: false
             }
-        }
+        }    
     };
 
     config.getWiredepDefaultOptions = function() {

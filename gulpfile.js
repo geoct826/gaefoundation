@@ -20,7 +20,7 @@ gulp.task('vet', function () {
         .on('end', function() { log('JSHint Check Completed');});
 });
 
-gulp.task('gae-serve', ['optimize'], function() {
+gulp.task('gae-serve', ['optimize:home', 'optimize:admin'], function() {
     return gulp
         .src('./app', {read: false})
         .pipe($.shell([
@@ -31,47 +31,82 @@ gulp.task('gae-serve', ['optimize'], function() {
 });
 
 // Build Tasks
-gulp.task('build-routes', function () {
-    log('Creating routes from templates');
+gulp.task('build-routes:home', function () {
+    log('Creating Home Routes from templates');
     var router = require('front-router');
 
     return gulp
-        .src(config.homeTemplate + '**/*.html')
+        .src(config.homeHtml)
         .pipe(router({
-            path: config.temp + 'routes.js',
-            root: config.homeTemplate
+            path: config.temp + config.homeRouteFile,
+            root: '/'
         }))
-        .pipe(gulp.dest(config.temp + 'templates'));
+        .pipe(gulp.dest(config.temp + config.homeTemplatePath));
 });
+
+gulp.task('build-routes:admin', function () {
+    log('Creating Admin Routes from templates');
+    var router = require('front-router');
+
+    return gulp
+        .src(config.adminHtml)
+        .pipe(router({
+            path: config.temp + config.adminRouteFile,
+            root: '/'
+        }))
+        .pipe(gulp.dest(config.temp + config.adminTemplatePath));
+});
+
+gulp.templateCacheRan = false;
 
 gulp.task('templatecache', function() {
-    log('Creating $templateCache for foundation components');
+
+    if(!gulp.templateCacheRan){
+        gulp.templateCacheRan = true;
+        log('Creating $templateCache for foundation components');
+        return gulp
+            .src(config.htmltemplates)
+            .pipe($.minifyHtml({empty: true}))
+            .pipe($.angularTemplatecache(
+                config.templateCache.file,
+                config.templateCache.options        
+                ))
+            .pipe(gulp.dest(config.temp));
+    }
+});
+
+gulp.task('apptemplatecache:home', ['build-routes:home'], function() {
+    log('Creating $templateCache for home templates');
 
     return gulp
-        .src(config.htmltemplates)
+        .src(config.temp + config.homeTemplatePath + '**/*.html')
         .pipe($.minifyHtml({empty: true}))
         .pipe($.angularTemplatecache(
-            config.templateCache.file,
-            config.templateCache.options        
-            ))
+            config.homeTemplateFile,{ 
+                module: 'foundation',
+                standAlone: false,
+                root: 'src/home/templates/'
+            }))
         .pipe(gulp.dest(config.temp));
 });
 
-gulp.task('apptemplatecache', ['build-routes'], function() {
-    log('Creating $templateCache for application templates');
+gulp.task('apptemplatecache:admin', ['build-routes:admin'], function() {
+    log('Creating $templateCache for home templates');
 
     return gulp
-        .src(config.temp + 'templates/**/*.html')
+        .src(config.temp + config.adminTemplatePath + '**/*.html')
         .pipe($.minifyHtml({empty: true}))
         .pipe($.angularTemplatecache(
-            config.appTemplateCache.file,
-            config.appTemplateCache.options        
-            ))
+            config.adminTemplateFile,{ 
+                module: 'foundation',
+                standAlone: false,
+                root: 'src/admin/templates/'
+            }))
         .pipe(gulp.dest(config.temp));
-});
+});              
 
-gulp.task('wiredep', function() {
-    log('Wire up the bower css/js and app js into index.html');
+gulp.task('inject:home', ['styles', 'templatecache', 'apptemplatecache:home'], function() {
+    log('Wire up the bower css/js and app css/js into home index.html');
     var options = config.getWiredepDefaultOptions();
     var wiredep = require('wiredep').stream;
 
@@ -79,36 +114,40 @@ gulp.task('wiredep', function() {
         .src(config.homeIndex)
         .pipe(wiredep(options))
         .pipe($.inject(gulp.src(config.homeJs)))
+        .pipe($.inject(gulp.src(config.homeCss)))    
         .pipe(gulp.dest(config.homeApp));
 });
 
-gulp.task('inject', ['wiredep', 'styles', 'templatecache', 'apptemplatecache'], function() {
-    log('Wire up the app css into index.html');
+gulp.task('inject:admin', ['styles', 'templatecache', 'apptemplatecache:admin'], function() {
+    log('Wire up the bower css/js and app js into admin index.html');
+    var options = config.getWiredepDefaultOptions();
+    var wiredep = require('wiredep').stream;
 
     return gulp
-        .src(config.homeIndex)
-        .pipe($.inject(gulp.src(config.homeCss)))
-        .pipe(gulp.dest(config.homeApp));
+        .src(config.adminIndex)
+        .pipe(wiredep(options))
+        .pipe($.inject(gulp.src(config.adminJs)))
+        .pipe($.inject(gulp.src(config.adminCss)))    
+        .pipe(gulp.dest(config.adminApp));
 });
 
-gulp.task('optimize', ['inject', 'watch'], function() {
-    log('Optimizing javascript, css, and html files');
+gulp.task('optimize:home', ['inject:home', 'watch:home'], function() {
+    log('Optimizing files for home application');
 
     var assets = $.useref.assets({searchPath: './'});
     var cssFilter = $.filter('**/*.css', {restore:true});
     var jsAppFilter = $.filter('**/' + config.homeOptimized.app, {restore:true});
     var jsLibFilter = $.filter('**/' + config.homeOptimized.lib, {restore:true});
-    //var templateCache = config.temp + config.templateCache.file;
 
     return gulp
         .src(config.homeIndex)
         .pipe($.plumber())
         .pipe($.inject(gulp.src([
-            config.temp + 'templates.js',
-            config.temp + 'appTemplates.js'], {read: false}), {
+            config.temp + config.templateCache.file,
+            config.temp + config.homeTemplateFile], {read: false}), {
             starttag: '<!-- inject:templates:js -->'
         }))
-        .pipe($.inject(gulp.src(config.temp + 'routes.js', {read: false}), {
+        .pipe($.inject(gulp.src(config.temp + config.homeRouteFile, {read: false}), {
             starttag: '<!-- inject:routes:js -->'
         }))    
         .pipe(assets)
@@ -131,16 +170,65 @@ gulp.task('optimize', ['inject', 'watch'], function() {
         .pipe(gulp.dest(config.homeBuild));
 });
 
+gulp.task('optimize:admin', ['inject:admin', 'watch:admin'], function() {
+    log('Optimizing files for admin application');
 
-gulp.slurped = false;
+    var assets = $.useref.assets({searchPath: './'});
+    var cssFilter = $.filter('**/*.css', {restore:true});
+    var jsAppFilter = $.filter('**/' + config.adminOptimized.app, {restore:true});
+    var jsLibFilter = $.filter('**/' + config.adminOptimized.lib, {restore:true});
 
-gulp.task('watch', function() {
-    if(!gulp.slurped){
+    return gulp
+        .src(config.homeIndex)
+        .pipe($.plumber())
+        .pipe($.inject(gulp.src([
+            config.temp + config.templateCache.file,
+            config.temp + config.adminTemplateFile], {read: false}), {
+            starttag: '<!-- inject:templates:js -->'
+        }))
+        .pipe($.inject(gulp.src(config.temp + config.adminRouteFile, {read: false}), {
+            starttag: '<!-- inject:routes:js -->'
+        }))    
+        .pipe(assets)
+        // Filter and Minify CSS
+        .pipe(cssFilter)
+        .pipe($.minifyCss())
+        .pipe(cssFilter.restore)
+		// Filter and Minify Lib JS
+        .pipe(jsLibFilter)
+        .pipe($.uglify())
+        .pipe(jsLibFilter.restore)
+        // Filter, ngAnnotate and Minify App JS
+        .pipe(jsAppFilter)
+        //.pipe($.ngAnnotate({add:true}))
+        .pipe($.uglify())
+        .pipe(jsAppFilter.restore)
+        // Restore all assets
+        .pipe(assets.restore())
+        .pipe($.useref())
+        .pipe(gulp.dest(config.adminBuild));
+});
+
+gulp.slurpedHome = false;
+gulp.slurpedAdmin = false;
+
+gulp.task('watch:home', function() {
+    if(!gulp.slurpedHome){
         log('starting watcher');
         gulp.watch([
             config.homeJs,           
-            config.homeTemplate + '**/*.html'], ["optimize"]);
-        gulp.slurped = true;
+            config.homeHtml], ["optimize:home"]);
+        gulp.slurpedHome = true;
+    }    
+});
+
+gulp.task('watch:admin', function() {
+    if(!gulp.slurpedAdmin){
+        log('starting watcher');
+        gulp.watch([
+            config.adminJs,           
+            config.adminHtml], ["optimize:admin"]);
+        gulp.slurpedAdmin = true;
     }    
 });
 
